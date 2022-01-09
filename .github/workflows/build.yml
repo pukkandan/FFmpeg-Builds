@@ -14,7 +14,7 @@ on:
         default: false
         required: false
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '0 0 * * 0'  # Build weekly - I dont need daily builds
 
 env:
   DOCKER_BUILDKIT: 1
@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [win32,win64,linux64,linuxarm64]
+        target: [win64]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -124,17 +124,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [win32,win64]
-        variant: [gpl,gpl 6.0,gpl-shared,gpl-shared 6.0]
-        include:
-          - target: linux64
-            variant: gpl
-          - target: linux64
-            variant: gpl 6.0
-          - target: linuxarm64
-            variant: gpl
-          - target: linuxarm64
-            variant: gpl 6.0
+        target: [win64]
+        variant: [nonfree, nonfree 6.0]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -189,17 +180,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [win32,win64]
-        variant: [gpl,gpl 6.0,gpl-shared,gpl-shared 6.0]
-        include:
-          - target: linux64
-            variant: gpl
-          - target: linux64
-            variant: gpl 6.0
-          - target: linuxarm64
-            variant: gpl
-          - target: linuxarm64
-            variant: gpl 6.0
+        target: [win64]
+        variant: [nonfree, nonfree 6.0]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -239,7 +221,7 @@ jobs:
           RELDATE="$(date +'%Y-%m-%d %H:%M')"
           NAME="Auto-Build $RELDATE"
           TAGNAME="autobuild-$(date +'%Y-%m-%d-%H-%M')"
-          hub release create $(for a in artifacts/*.{zip,tar.xz}; do echo -a $a; done) -m "$NAME" -t "master" "$TAGNAME"
+          hub release create $(for a in artifacts/*.zip; do echo -a $a; done) -m "$NAME" -t "master" "$TAGNAME"
           echo "tag_name=${TAGNAME}" >> $GITHUB_OUTPUT
           echo "rel_date=${RELDATE}" >> $GITHUB_OUTPUT
         env:
@@ -249,7 +231,7 @@ jobs:
           set -xe
           shopt -s nullglob
           mkdir latest_artifacts
-          ./util/repack_latest.sh latest_artifacts artifacts/*.{zip,tar.xz}
+          ./util/repack_latest.sh latest_artifacts artifacts/*.zip
           NAME="Latest Auto-Build (${{ steps.create_release.outputs.rel_date }})"
           TAGNAME="latest"
           hub release delete "$TAGNAME" || true
@@ -259,6 +241,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Update Wiki
+        if: False
         run: ./util/update_wiki.sh artifacts ${{ steps.create_release.outputs.tag_name }}
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -2,7 +2,7 @@ name: Rebase on Upstream
 
 on:
   schedule:
-  - cron: "0 11 * * *"  # run every day an hour before regular build
+  - cron: "0 12 * * 6"  # Some time before build
   workflow_dispatch:    # run manually
 
 jobs:
@@ -13,3 +13,6 @@ jobs:
       with:
         fetch-depth: 0
     - uses: yt-dlp/rebase-upstream-action@master
+      with:
+        upstream: yt-dlp/FFmpeg-Builds
+        branch: master
